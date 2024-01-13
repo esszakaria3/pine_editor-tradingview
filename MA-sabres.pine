@@ -1,0 +1,55 @@
+// This work is licensed under esszakaria3
+
+//@version=5
+indicator('MA Sabres [LuxAlgo]', shorttitle='LuxAlgo - MA Sabres', max_polylines_count=100, overlay=true)
+
+//------------------------------------------------------------------------------
+//Settings
+//-----------------------------------------------------------------------------{
+type       = input.string(  "TEMA" ,               'MA Type'               , group=   'MA'
+ , options =   ["SMA", "EMA", "SMMA (RMA)", "HullMA", "WMA", "VWMA", "DEMA", "TEMA", "NONE"])
+len        = input.int   (    50   ,                'Length'               , group=   'MA'  )
+count      = input.int   (    20   ,       'Previous Trend Duration'       , group=   'MA'  
+ , tooltip =                    'Reversal after x bars in the same direction'               )
+colUp      = input.color (#2962ff,               'Bullish'               , group='Colours')
+colDn      = input.color (#f23645,               'Bearish'               , group='Colours')
+colMa      = input.color (#787b86,                  'MA'                 , group='Colours')
+
+
+//-----------------------------------------------------------------------------}
+//Method MA
+//-----------------------------------------------------------------------------{
+method ma(string type, int length) =>
+    //
+    ema1 = ta.ema(close, length)
+    ema2 = ta.ema(ema1 , length)
+    ema3 = ta.ema(ema2 , length)
+    //
+    switch type
+        "SMA"        => ta.sma (close, length)
+        "EMA"        => ema1
+        "SMMA (RMA)" => ta.rma (close, length)
+        "HullMA"     => ta.hma (close, length)
+        "WMA"        => ta.wma (close, length)
+        "VWMA"       => ta.vwma(close, length)
+        "DEMA"       =>  2 * ema1  -      ema2
+        "TEMA"       => (3 * ema1) - (3 * ema2) + ema3
+        => na
+
+
+//-----------------------------------------------------------------------------}
+//Calculations
+//-----------------------------------------------------------------------------{
+ma    =            type.ma(len)
+fl    = ta.falling(ma  , count)
+rs    = ta.rising (ma  , count)
+up    = fl[1] and  ma  >  ma[1] 
+dn    = rs[1] and  ma  <  ma[1]  
+atr   = ta.atr(14)
+n     = bar_index
+
+//-----------------------------------------------------------------------------}
+//Execution
+//-----------------------------------------------------------------------------{
+if up 
+
